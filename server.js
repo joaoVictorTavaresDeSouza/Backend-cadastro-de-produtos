@@ -1,16 +1,18 @@
 import express from 'express'
 import cors from 'cors'
 import mysql from 'mysql2/promise'
+import dotenv from 'dotenv'
+dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 3000
 
 // Pool de conexões MySQL
 const pool = mysql.createPool({
-    host: 'benserverplex.ddns.net',
-    user: 'root',
-    password: '',
-    database: 'web_03mb',
+    host: process.env.DB_HOST || 'benserverplex.ddns.net',
+    user: process.env.DB_USER || 'alunos',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'web_03mb',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -23,7 +25,7 @@ app.post('/products', async (req, res) => {
     try {
         const { name, email, price, description, category } = req.body
 
-        if (!name || !email || !price || !description || !category) {
+        if (!name || !email || description === undefined || description === null || category === undefined || category === null || price === undefined || price === null || price === '') {
             return res.status(400).json({
                 error: 'Todos os campos são obrigatórios'
             })
@@ -31,7 +33,7 @@ app.post('/products', async (req, res) => {
 
         const connection = await pool.getConnection()
         
-        const query = 'INSERT INTO 03mb_victor_tavares (name, email, price, category, description) VALUES (?, ?, ?, ?, ?)'
+        const query = 'INSERT INTO `produtosVictorTavares` (name, email, price, category, description) VALUES (?, ?, ?, ?, ?)'
         const [result] = await connection.execute(query, [
             name,
             email,
@@ -63,7 +65,7 @@ app.get('/products', async (req, res) => {
     try {
         const connection = await pool.getConnection()
         
-        const [products] = await connection.query('SELECT id, name, email, price, category, description FROM 03mb_victor_tavares')
+        const [products] = await connection.query('SELECT id, name, email, price, category, description FROM `produtosVictorTavares`')
         
         connection.release()
 
